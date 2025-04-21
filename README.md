@@ -6,4 +6,9 @@ This script is a fork of "docker.sh" (https://raw.githubusercontent.com/communit
 
 Just added possibility to choose keyboard layout (French/Switzerland here) and creation of non-root user with username/password/ssh key.
 
+Usage :
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/gabmich/proxmox-scripts/refs/heads/main/pve-debian-docker.sh)"
+```
+
 ## more scripts will be added if needed
