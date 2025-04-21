@@ -8,7 +8,7 @@ Just added possibility to choose keyboard layout (French/Switzerland here) and c
 
 Usage :
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/gabmich/proxmox-scripts/refs/heads/main/pve-debian-docker.sh)"
+bash -c "$(curl -fsSL https://github.com/gabmich/proxmox-scripts/raw/refs/heads/main/pve-debian-docker.sh)"
 ```
 
 ## more scripts will be added if needed
