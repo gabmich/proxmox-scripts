@@ -336,6 +336,16 @@ pve_check
 ssh_check
 start_script
 
+# --- Nouveau : choix de la taille du disque principal ---
+if DISK_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" \
+      --inputbox "Taille du disque principal (ex: 8G, 20G) :" 8 58 "$DISK_SIZE" \
+      --title "DISK SIZE" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+  DISK_SIZE=${DISK_SIZE:-8G}
+  echo -e "${DGN}Using Disk Size: ${BGN}${DISK_SIZE}${CL}"
+else
+  exit-script
+fi
+
 # --- Ask for username and password ---
 if USER_NAME=$(whiptail --inputbox "Enter the new user name (non‑root):" 8 50 3>&1 1>&2 2>&3); then
   USER_NAME=${USER_NAME,,}
@@ -466,6 +476,7 @@ virt-customize -q -a "${FILE}" \
   --upload "${TEMP_DIR}/authorized_keys":/home/${USER_NAME}/.ssh/authorized_keys \
   --run-command "chmod 600 /home/${USER_NAME}/.ssh/authorized_keys && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh" \
   --run-command "echo -n > /etc/machine-id" \
+  --resize /dev/sda1 \
   >/dev/null
 msg_ok "Image ready: Docker, SSH, keyboard ${KB_LAYOUT}/${KB_VARIANT} and user ${USER_NAME}"
 
@@ -489,10 +500,10 @@ pvesm alloc $STORAGE $VMID $DISK0 4M >/dev/null
 qm importdisk $VMID "${FILE}" $STORAGE ${DISK_IMPORT:-} >/dev/null
 qm set $VMID \
   -efidisk0 ${DISK0_REF}${FORMAT} \
-  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=2G \
+  -scsi0 ${DISK1_REF},${DISK_CACHE}${THIN}size=${DISK_SIZE} \
   -boot order=scsi0 \
   -serial0 socket >/dev/null
-qm resize $VMID scsi0 8G >/dev/null
+qm resize $VMID scsi0 ${DISK_SIZE} >/dev/null
 qm set $VMID --agent enabled=1 >/dev/null
 
 DESCRIPTION=$(
@@ -526,4 +537,3 @@ if [ "$START_VM" == "yes" ]; then
 fi
 post_update_to_api "done" "none"
 msg_ok "Completed Successfully!\n"
-
