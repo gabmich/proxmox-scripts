@@ -26,7 +26,7 @@ METHOD=""
 NSAPP="debian12vm"
 var_os="debian"
 var_version="12"
-DISK_SIZE="8G"
+DISK_SIZE="12G"
 
 YW=$(echo "\033[33m")
 BL=$(echo "\033[36m")
@@ -147,7 +147,7 @@ function default_settings() {
   HN="docker"
   CPU_TYPE=""
   CORE_COUNT="2"
-  RAM_SIZE="4096"
+  RAM_SIZE="512"
   BRG="vmbr0"
   MAC="$GEN_MAC"
   VLAN=""
@@ -435,6 +435,18 @@ echo -en "\e[1A\e[0K"
 FILE=$(basename "$URL")
 msg_ok "Downloaded ${CL}${BL}${FILE}${CL}"
 
+# --- Étendre le QCOW2 à la taille souhaitée ---
+msg_info "Redimensionnement du QCOW2 à ${DISK_SIZE}"
+qemu-img resize "${FILE}" "${DISK_SIZE}"
+msg_ok "Image QCOW2 redimensionnée à ${CL}${BL}${DISK_SIZE}${CL}"
+
+msg_info "Redimensionnement de /dev/sda1 avec growpart"
+virt-customize -q -a "${FILE}" \
+  --install cloud-guest-utils \
+  --run-command "growpart /dev/sda 1" \
+  --run-command "resize2fs /dev/sda1"
+msg_ok "Partition /dev/sda1 redimensionnée pour utiliser tout l’espace"
+
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 case $STORAGE_TYPE in
   nfs|dir)
@@ -463,7 +475,7 @@ msg_ok "Installed libguestfs-tools successfully"
 
 msg_info "Adding Docker, SSH, keyboard and user into the image"
 virt-customize -q -a "${FILE}" \
-  --install qemu-guest-agent,apt-transport-https,ca-certificates,curl,gnupg,software-properties-common,lsb-release,openssh-server,keyboard-configuration,console-setup \
+  --install qemu-guest-agent,apt-transport-https,ca-certificates,curl,gnupg,software-properties-common,lsb-release,openssh-server,keyboard-configuration,console-setup,wget,ncdu,htop \
   --run-command "mkdir -p /etc/apt/keyrings && curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg" \
   --run-command "echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable' > /etc/apt/sources.list.d/docker.list" \
   --run-command "apt-get update -qq && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin" \
@@ -476,7 +488,6 @@ virt-customize -q -a "${FILE}" \
   --upload "${TEMP_DIR}/authorized_keys":/home/${USER_NAME}/.ssh/authorized_keys \
   --run-command "chmod 600 /home/${USER_NAME}/.ssh/authorized_keys && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh" \
   --run-command "echo -n > /etc/machine-id" \
-  --resize /dev/sda1 \
   >/dev/null
 msg_ok "Image ready: Docker, SSH, keyboard ${KB_LAYOUT}/${KB_VARIANT} and user ${USER_NAME}"
 
