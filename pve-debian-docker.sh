@@ -480,10 +480,10 @@ virt-customize -q -a "${FILE}" \
   --run-command "echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable' > /etc/apt/sources.list.d/docker.list" \
   --run-command "apt-get update -qq && apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin" \
   --run-command "systemctl enable docker" \
-  --run-command "usermod -aG docker ${USER_NAME}" \
   --run-command "sed -i 's/^XKBLAYOUT=.*/XKBLAYOUT=\"${KB_LAYOUT}\"/; s/^XKBVARIANT=.*/XKBVARIANT=\"${KB_VARIANT}\"/' /etc/default/keyboard" \
   --run-command "DEBIAN_FRONTEND=noninteractive dpkg-reconfigure keyboard-configuration" \
   --run-command "useradd -m -s /bin/bash -G sudo ${USER_NAME} && echo '${USER_NAME}:${USER_PASS}' | chpasswd" \
+  --run-command "usermod -aG docker ${USER_NAME}" \
   --run-command "sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && echo 'AllowUsers ${USER_NAME}' >> /etc/ssh/sshd_config && systemctl enable ssh" \
   --run-command "mkdir -p /home/${USER_NAME}/.ssh && chmod 700 /home/${USER_NAME}/.ssh" \
   --upload "${TEMP_DIR}/authorized_keys":/home/${USER_NAME}/.ssh/authorized_keys \
