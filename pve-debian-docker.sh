@@ -488,6 +488,8 @@ virt-customize -q -a "${FILE}" \
   --run-command "mkdir -p /home/${USER_NAME}/.ssh && chmod 700 /home/${USER_NAME}/.ssh" \
   --upload "${TEMP_DIR}/authorized_keys":/home/${USER_NAME}/.ssh/authorized_keys \
   --run-command "chmod 600 /home/${USER_NAME}/.ssh/authorized_keys && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh" \
+  --run-command "echo '${HN}' > /etc/hostname" \
+  --run-command "sed -i 's|^127\\.0\\.1\\.1.*|127.0.1.1 ${HN}|' /etc/hosts" \
   --run-command "echo -n > /etc/machine-id" \
   >/dev/null
 msg_ok "Image ready: Docker, SSH, keyboard ${KB_LAYOUT}/${KB_VARIANT} and user ${USER_NAME}"
