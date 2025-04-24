@@ -440,6 +440,14 @@ msg_info "Redimensionnement du QCOW2 à ${DISK_SIZE}"
 qemu-img resize "${FILE}" "${DISK_SIZE}"
 msg_ok "Image QCOW2 redimensionnée à ${CL}${BL}${DISK_SIZE}${CL}"
 
+msg_info "Configuration des dépôts Proxmox pour apt"
+# Désactive le dépôt enterprise (401 Unauthorized sans abonnement)
+sed -i 's|^deb https://enterprise.proxmox.com/debian/.*|# &|' /etc/apt/sources.list.d/pve-enterprise.list
+# Ajoute le dépôt no-subscription officiel
+echo "deb http://download.proxmox.com/debian/pve $(lsb_release -cs) pve-no-subscription" \
+    > /etc/apt/sources.list.d/pve-no-subscription.list
+msg_ok "Dépôts Proxmox configurés"
+
 msg_info "Installing Pre-Requisite libguestfs-tools (virt-customize)"
 apt-get update -qq && apt-get install -qq -y libguestfs-tools
 msg_ok "Installed libguestfs-tools successfully"
