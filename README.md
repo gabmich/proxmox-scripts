@@ -1,6 +1,21 @@
 # proxmox-scripts
 Proxmox scripts for VM and containers creation.
 
+# requirements
+In my case, I don't have a Proxmox entreprise subscription. So I had to switch to the free one on the host :
+
+```
+sed -i 's|^deb https://enterprise.proxmox.com/debian/.*|# &|' \
+  /etc/apt/sources.list.d/pve-enterprise.list
+```
+
+After that, install libguestfs-tools on host :
+
+```
+apt update
+apt install libguestfs-tools
+```
+
 ## pve-debian-docker.sh
 This script is a fork of "docker.sh" (https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/vm/docker-vm.sh) by thost96 (thost96). Published here : https://community-scripts.github.io/ProxmoxVE/scripts?id=docker. 
 
