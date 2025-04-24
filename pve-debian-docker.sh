@@ -440,6 +440,10 @@ msg_info "Redimensionnement du QCOW2 à ${DISK_SIZE}"
 qemu-img resize "${FILE}" "${DISK_SIZE}"
 msg_ok "Image QCOW2 redimensionnée à ${CL}${BL}${DISK_SIZE}${CL}"
 
+msg_info "Installing Pre-Requisite libguestfs-tools (virt-customize)"
+apt-get update -qq && apt-get install -qq -y libguestfs-tools
+msg_ok "Installed libguestfs-tools successfully"
+
 msg_info "Redimensionnement de /dev/sda1 avec growpart"
 virt-customize -q -a "${FILE}" \
   --install cloud-guest-utils \
