@@ -440,18 +440,6 @@ msg_info "Redimensionnement du QCOW2 à ${DISK_SIZE}"
 qemu-img resize "${FILE}" "${DISK_SIZE}"
 msg_ok "Image QCOW2 redimensionnée à ${CL}${BL}${DISK_SIZE}${CL}"
 
-msg_info "Configuration des dépôts Proxmox pour apt"
-# Désactive le dépôt enterprise (401 Unauthorized sans abonnement)
-sed -i 's|^deb https://enterprise.proxmox.com/debian/.*|# &|' /etc/apt/sources.list.d/pve-enterprise.list
-# Ajoute le dépôt no-subscription officiel
-echo "deb http://download.proxmox.com/debian/pve $(lsb_release -cs) pve-no-subscription" \
-    > /etc/apt/sources.list.d/pve-no-subscription.list
-msg_ok "Dépôts Proxmox configurés"
-
-msg_info "Installing Pre-Requisite libguestfs-tools (virt-customize)"
-apt-get update -qq && apt-get install -qq -y libguestfs-tools
-msg_ok "Installed libguestfs-tools successfully"
-
 msg_info "Redimensionnement de /dev/sda1 avec growpart"
 virt-customize -q -a "${FILE}" \
   --install cloud-guest-utils \
@@ -500,8 +488,6 @@ virt-customize -q -a "${FILE}" \
   --run-command "mkdir -p /home/${USER_NAME}/.ssh && chmod 700 /home/${USER_NAME}/.ssh" \
   --upload "${TEMP_DIR}/authorized_keys":/home/${USER_NAME}/.ssh/authorized_keys \
   --run-command "chmod 600 /home/${USER_NAME}/.ssh/authorized_keys && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh" \
-  --run-command "echo '${HN}' > /etc/hostname" \
-  --run-command "sed -i 's|^127\\.0\\.1\\.1.*|127.0.1.1 ${HN}|' /etc/hosts" \
   --run-command "echo -n > /etc/machine-id" \
   >/dev/null
 msg_ok "Image ready: Docker, SSH, keyboard ${KB_LAYOUT}/${KB_VARIANT} and user ${USER_NAME}"
