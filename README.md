@@ -2,12 +2,13 @@
 Proxmox scripts for VM and containers creation.
 
 # requirements
-In my case, I don't have a Proxmox entreprise subscription. So I had to switch to the free one on the host :
+In my case, I don't have a Proxmox entreprise subscription. So I had to switch to the free one on the host. This script is perfet for that (run the script in the host's Proxmox shell) :
 
 ```
-sed -i 's|^deb https://enterprise.proxmox.com/debian/.*|# &|' \
-  /etc/apt/sources.list.d/pve-enterprise.list
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)"
 ```
+
+(source : https://community-scripts.github.io/ProxmoxVE/scripts?id=post-pve-install).
 
 After that, install libguestfs-tools on host :
 
