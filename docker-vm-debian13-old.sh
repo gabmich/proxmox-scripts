@@ -60,8 +60,6 @@ VLANTAG="${TAB}🏷️${TAB}${CL}"
 CREATING="${TAB}🚀${TAB}${CL}"
 ADVANCED="${TAB}🧩${TAB}${CL}"
 CLOUD="${TAB}☁️${TAB}${CL}"
-USERICON="${TAB}👤${TAB}${CL}"
-SSHICON="${TAB}🔑${TAB}${CL}"
 
 THIN="discard=on,ssd=1,"
 set -e
@@ -221,43 +219,6 @@ function default_settings() {
   MTU=""
   START_VM="yes"
   METHOD="default"
-
-  # Prompt for sudo user
-  while true; do
-    if SUDO_USER_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a sudo username" 8 58 "admin" --title "SUDO USER" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-      if [ -z "$SUDO_USER_NAME" ]; then
-        echo -e "${CROSS}${RD}Username cannot be empty${CL}"
-        continue
-      fi
-      echo -e "${USERICON}${BOLD}${DGN}Sudo User: ${BGN}${SUDO_USER_NAME}${CL}"
-      break
-    else
-      exit-script
-    fi
-  done
-  while true; do
-    if SUDO_USER_PASS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "Set password for ${SUDO_USER_NAME}" 8 58 --title "SUDO USER PASSWORD" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-      if [ -z "$SUDO_USER_PASS" ]; then
-        echo -e "${CROSS}${RD}Password cannot be empty${CL}"
-        continue
-      fi
-      if SUDO_USER_PASS_CONFIRM=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "Confirm password for ${SUDO_USER_NAME}" 8 58 --title "CONFIRM PASSWORD" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-        if [ "$SUDO_USER_PASS" != "$SUDO_USER_PASS_CONFIRM" ]; then
-          echo -e "${CROSS}${RD}Passwords do not match${CL}"
-          continue
-        fi
-        echo -e "${USERICON}${BOLD}${DGN}Password: ${BGN}********${CL}"
-        break
-      else
-        exit-script
-      fi
-    else
-      exit-script
-    fi
-  done
-  SSH_ENABLED="yes"
-  echo -e "${SSHICON}${BOLD}${DGN}SSH Access: ${BGN}Enabled (port 22)${CL}"
-
   echo -e "${CONTAINERID}${BOLD}${DGN}Virtual Machine ID: ${BGN}${VMID}${CL}"
   echo -e "${CONTAINERTYPE}${BOLD}${DGN}Machine Type: ${BGN}i440fx${CL}"
   echo -e "${DISKSIZE}${BOLD}${DGN}Disk Size: ${BGN}${DISK_SIZE}${CL}"
@@ -447,42 +408,6 @@ function advanced_settings() {
     START_VM="no"
   fi
 
-  # Prompt for sudo user
-  while true; do
-    if SUDO_USER_NAME=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Set a sudo username" 8 58 "admin" --title "SUDO USER" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-      if [ -z "$SUDO_USER_NAME" ]; then
-        echo -e "${CROSS}${RD}Username cannot be empty${CL}"
-        continue
-      fi
-      echo -e "${USERICON}${BOLD}${DGN}Sudo User: ${BGN}${SUDO_USER_NAME}${CL}"
-      break
-    else
-      exit-script
-    fi
-  done
-  while true; do
-    if SUDO_USER_PASS=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "Set password for ${SUDO_USER_NAME}" 8 58 --title "SUDO USER PASSWORD" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-      if [ -z "$SUDO_USER_PASS" ]; then
-        echo -e "${CROSS}${RD}Password cannot be empty${CL}"
-        continue
-      fi
-      if SUDO_USER_PASS_CONFIRM=$(whiptail --backtitle "Proxmox VE Helper Scripts" --passwordbox "Confirm password for ${SUDO_USER_NAME}" 8 58 --title "CONFIRM PASSWORD" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
-        if [ "$SUDO_USER_PASS" != "$SUDO_USER_PASS_CONFIRM" ]; then
-          echo -e "${CROSS}${RD}Passwords do not match${CL}"
-          continue
-        fi
-        echo -e "${USERICON}${BOLD}${DGN}Password: ${BGN}********${CL}"
-        break
-      else
-        exit-script
-      fi
-    else
-      exit-script
-    fi
-  done
-  SSH_ENABLED="yes"
-  echo -e "${SSHICON}${BOLD}${DGN}SSH Access: ${BGN}Enabled (port 22)${CL}"
-
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "ADVANCED SETTINGS COMPLETE" --yesno "Ready to create a Docker VM (Debian 13)?" --no-button Do-Over 10 58); then
     echo -e "${CREATING}${BOLD}${DGN}Creating a Docker VM (Debian 13) using the above advanced settings${CL}"
   else
@@ -588,19 +513,6 @@ virt-customize -q -a "${FILE}" --install qemu-guest-agent,ca-certificates,curl,g
   virt-customize -q -a "${FILE}" --hostname "${HN}" >/dev/null &&
   virt-customize -q -a "${FILE}" --run-command "echo -n > /etc/machine-id" >/dev/null
 msg_ok "Added Docker and Docker Compose Plugin to Debian 13 Qcow2 Disk Image successfully"
-
-msg_info "Configuring sudo user '${SUDO_USER_NAME}' and SSH access"
-HASHED_PASS=$(openssl passwd -6 "${SUDO_USER_PASS}")
-virt-customize -q -a "${FILE}" --install sudo,openssh-server >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "useradd -m -s /bin/bash -G sudo ${SUDO_USER_NAME}" >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "echo '${SUDO_USER_NAME}:${HASHED_PASS}' | chpasswd -e" >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "echo '${SUDO_USER_NAME} ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/${SUDO_USER_NAME} && chmod 440 /etc/sudoers.d/${SUDO_USER_NAME}" >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config" >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config" >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "sed -i 's/^#\?Port.*/Port 22/' /etc/ssh/sshd_config" >/dev/null &&
-  virt-customize -q -a "${FILE}" --run-command "systemctl enable ssh" >/dev/null
-msg_ok "Configured sudo user '${SUDO_USER_NAME}' and SSH access successfully"
-unset SUDO_USER_PASS SUDO_USER_PASS_CONFIRM HASHED_PASS
 
 msg_info "Expanding root partition to use full disk space"
 qemu-img create -f qcow2 expanded.qcow2 ${DISK_SIZE} >/dev/null 2>&1
